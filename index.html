@@ -854,27 +854,30 @@ function submitResults(score, grade) {
     `\n--- ДЕТАЛИЗАЦИЯ ОТВЕТОВ ---\n` +
     lines;
 
-  const formData = new FormData();
-  formData.append('Студент', student.name);
-  formData.append('Группа', student.group);
-  formData.append('Email студента', student.email);
-  formData.append('Результат', score + ' из ' + TOTAL + ' (' + Math.round(score/TOTAL*100) + '%)');
-  formData.append('Оценка', gradeDisplay);
-  formData.append('Ошибок', wrongCount);
-  formData.append('Детализация', lines);
-  formData.append('_subject', '[Экзамен] ' + student.name + ' — оценка ' + gradeDisplay + ' (' + score + '/' + TOTAL + ')');
-  formData.append('_template', 'table');
-  formData.append('_captcha', 'false');
+  const payload = {
+    access_key: '8dc9b194-0b7b-4cd4-a05c-8916eaa30dda',
+    subject: '[Экзамен] ' + student.name + ' — оценка ' + gradeDisplay + ' (' + score + '/' + TOTAL + ')',
+    from_name: 'Экзамен Семейная психология',
+    'Студент': student.name,
+    'Группа': student.group,
+    'Email студента': student.email,
+    'Результат': score + ' из ' + TOTAL + ' (' + Math.round(score/TOTAL*100) + '%)',
+    'Оценка': gradeDisplay,
+    'Ошибок': wrongCount,
+    'Детализация': lines
+  };
 
-  fetch('https://formsubmit.co/ekolesnikov91@gmail.com', {
+  fetch('https://api.web3forms.com/submit', {
     method: 'POST',
-    body: formData
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(payload)
   })
-  .then(r => {
-    if (r.ok) {
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
       msg.innerHTML = '<span class="sent-ok">✓ Результаты отправлены преподавателю</span>';
     } else {
-      throw new Error('server error');
+      throw new Error(data.message || 'server error');
     }
   })
   .catch(() => {
